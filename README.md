@@ -1,4 +1,5 @@
 # PiDAR
+*__This repository is an updated version of this BAE 305 project which incorporates changes made to enable easier sampling during flights. The original BAE 305 project can be found at [DiontreBaker/PiDAR](https://github.com/DiontreBaker/PiDAR) or in the [BAE-305-Project Branch](https://github.com/joedvorak/PiDAR/tree/BAE-305-Project) of this repository.__*
 
 *Group Members: Eric Vanzant (Project Owner), Tre Baker (Scrum Master), Kimberly Stenho, Rueben Golyatov, Handerson Coq, Makua Vin*
 
