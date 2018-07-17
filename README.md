@@ -9,9 +9,9 @@ In agriculture, we as engineers combine science and machines to help us use our 
 ### Project Features
 **Goal: Operate LIDAR sampling (both collection of measurements and recording of data) using the 5V R/C Servo-style PWM signals from a UAS flight controller.**
 
-To use the LIDAR system, we needed a method to trigger sampling (both taking measurement and recording data) during flights. While some LIDARs can be managed through a simple microcontroller, we have had better results interfacing with computers. We have used the Rasberry Pi in this project for its small size and low weight along with its robust customizability. The LIDAR unit is connected directly to the Raspberry Pi, which controls its operation and records the data. We send signals to the Raspberry Pi using the interfaces built into the Unmanned Aerial System (UAS). As with most UAS, the A3 flight controller installed on our S1000 provides output signals in the form of 5V R/C Servo-style PWM signals. The Raspberry Pi does not a have a simple method of accurately timing these pulses at the necessary resolution so an Arduino microcontroller is used for that purpose. The selected Arduino Shield/Pi HAT incorporates the 3.3V to 5V level shifters and an Arduino Leonardo in one small package. 
+To use the LIDAR system, we needed a method to trigger sampling (both taking measurement and recording data) during flights. While some LIDARs can be managed through a simple microcontroller, we have had better results interfacing with computers. We have used the Rasberry Pi in this project for its small size and low weight along with its robust customizability. The LIDAR unit is connected directly to the Raspberry Pi, which controls its operation and records the data. We send signals to the Raspberry Pi using the interfaces built into the Unmanned Aerial System (UAS). As with most UAS, the A3 flight controller installed on our S1000 provides output signals in the form of 5V R/C Servo-style PWM signals. The Raspberry Pi does not a have a simple method of accurately timing these pulses at the necessary resolution so an Arduino microcontroller is used for that purpose. The selected Arduino Shield/Pi HAT incorporates the 3.3V to 5V level shifters and an Arduino Leonardo in one small package.
 
-Finally, it should be possible to control the LIDAR using the standard camera shutter controls on the UAS, but the DJI A3 and Lightbridge has those signals unavailable unless a channel expansion is added to the R/C controller. This text will not describe the setup of the DJI specific hardware like the Lightbridge2 or the channel expander. These systems seem to be in constant flux, but any UAS should be capable of sending an R/C pulse to control auxialry equipment. This description will focus on handling the input signals and recording LIDAR measurements. 
+Finally, it should be possible to control the LIDAR using the standard camera shutter controls on the UAS, but the DJI A3 and Lightbridge has those signals unavailable unless a channel expansion is added to the R/C controller. This text will not describe the setup of the DJI specific hardware like the Lightbridge2 or the channel expander. These systems seem to be in constant flux, but any UAS should be capable of sending an R/C pulse to control auxialry equipment. This description will focus on handling the input signals and recording LIDAR measurements.
 
 
 #### [*PiDAR Project Video*](https://youtu.be/mEO5Grrfrk8)
@@ -29,7 +29,7 @@ Finally, it should be possible to control the LIDAR using the standard camera sh
 - Scanse Sweep Scanner (LiDAR)
 - Spreading Wings S1000 (UAV)
 - DJI A3 flight controller
-- DJI LightBridge2 
+- DJI LightBridge2
 - DJI Matrice 600 Series Remote Controller Channel Expansion Kit
 - Mounting Bracket (Drawing Provided)
 - Panhead Machine Screws (4, M2.5x0.45 mm)
@@ -40,12 +40,12 @@ Finally, it should be possible to control the LIDAR using the standard camera sh
 ## Assembly Procedures
 
 ### Setting up the Raspberry Pi
-1. Download the [Scanse Sweep SDK](https://github.com/scanse/sweep-sdk). 
+1. Download the [Scanse Sweep SDK](https://github.com/scanse/sweep-sdk).
 2. Install libsweep.so and SweepPy following the instructions in the download package.
 3. On the Raspberry Pi create a directory to store the programs at /home/pi/code/sweep
-4. Place the input_monitor.py and record_scan.py files from the RPi files directory of this repository in the /home/pi/code/sweep directory on the Raspberry Pi. 
+4. Place the input_monitor.py and record_scan.py files from the RPi files directory of this repository in the /home/pi/code/sweep directory on the Raspberry Pi.
 5. Modify rc.local at /etc/rc.local by adding the following line to the end of the file (but before the exit 0 line). An example rc.local file is included, but it is suggested to just add this line to your Pi.
-su pi -c 'python3 /home/pi/code/sweep/input_monitor.py &'
+`su pi -c 'python3 /home/pi/code/sweep/input_monitor.py &'`
 6. Restart the Pi. It will now trigger a scan every time it receives input on pin 4 of the GPIO. The scans are saved in /home/pi/lidarData
 
 ### Description of the Raspberry Pi setup
@@ -105,7 +105,7 @@ Below is a sample of the data collected and stored on the SD card after a succes
      342.375000, 0.150000, 0.142959, -0.045418
      351.937500, 0.190000, 0.188122, -0.026648
      ...
-     
+
 ### Design
 Design considerations for the physical, 3-D printed mount and assembly include:
 - Minimum mount thickness: 0.1 in.
