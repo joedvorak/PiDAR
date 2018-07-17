@@ -6,6 +6,13 @@
 ## Summary
 In agriculture, we as engineers combine science and machines to help us use our environment more efficiently. At the University of Kentucky, engineering students are creating new inventive ways to help farmers and environmentalist alike. This semester our group has taken on the task of creating a platform for wireless control of a LIDAR scanner mounted on a UAV for measuring alfalfa plant height. A LIDAR stands for Light Detection and Ranging. This device sends pulses out to measure light frequencies so that the LIDAR can pick up differences in height on the ground. The first part of the project is to create a mount for the LIDAR so that it will be secure to the drone. Another part of the project is to develop a code for the LIDAR to measure the required data.
 
+### Project Features
+Goal: Operate LIDAR sampling (both collection of measurements and recording of data) using the 5V R/C Servo-style PWM signals from a UAS flight controller.
+
+To use the LIDAR system, we needed a method to trigger sampling (both taking measurement and recording data) during flights. While some LIDARs can be managed through a simple microcontroller, we have had better results interfacing with computers. We have used the Rasberry Pi in this project for its small size and low weight along with its robust customizability. The LIDAR unit is connected directly to the Raspberry Pi, which controls its operation and records the data. We send signals to the Raspberry Pi using the interfaces built into the Unmanned Aerial System (UAS). As with most UAS, the A3 flight controller installed on our S1000 provides output signals in the form of 5V R/C Servo-style PWM signals. The Raspberry Pi does not a have a simple method of accurately timing these pulses at the necessary resolution so an Arduino microcontroller is used for that purpose. The selected Arduino Shield/Pi HAT incorporates the 3.3V to 5V level shifters and an Arduino Leonardo in one small package. 
+
+Finally, it should be possible to control the LIDAR using the standard camera shutter controls on the UAS, but the DJI A3 and Lightbridge has those signals unavailable unless a channel expansion is added to the R/C controller. This text will not describe the setup of the DJI specific hardware like the Lightbridge2 or the channel expander. These systems seem to be in constant flux, but any UAS should be capable of sending an R/C pulse to control auxialry equipment. This description will focus on handling the input signals and recording LIDAR measurements. 
+
 
 #### [*PiDAR Project Video*](https://youtu.be/mEO5Grrfrk8)
 
@@ -18,8 +25,12 @@ In agriculture, we as engineers combine science and machines to help us use our 
 ## Materials
 - Raspberry Pi 3
 - Micro SD Card
+- Arduino Shield for Raspberry Pi B+/2B/3B (DFRobot P/N: [DFR0327](https://www.dfrobot.com/product-1211.html))
 - Scanse Sweep Scanner (LiDAR)
 - Spreading Wings S1000 (UAV)
+- DJI A3 flight controller
+- DJI LightBridge2 
+- DJI Matrice 600 Series Remote Controller Channel Expansion Kit
 - Mounting Bracket (Drawing Provided)
 - Panhead Machine Screws (4, M2.5x0.45 mm)
 - Micro USB to USB Cable
