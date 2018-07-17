@@ -38,116 +38,36 @@ Finally, it should be possible to control the LIDAR using the standard camera sh
 - Power Cables
 
 ## Assembly Procedures
-Copy and dowload the provided code into the Micro SD card. Insert the SD card to the Raspberry Pi. Place the Raspberry Pi onto its provided space in the bracket. Secure the LiDAR to its place in the same bracket, with the machine screws. Attach the USB cable from the Raspberry Pi to the LiDAR. Connect the power cables to the drone's battery. Attach the power converter to the power cables. Bolt the mount onto the drone. Finally, connect the cables to the Raspberry Pi.
+
+### Setting up the Raspberry Pi
+1. Download the [Scanse Sweep SDK](https://github.com/scanse/sweep-sdk). 
+2. Install libsweep.so and SweepPy following the instructions in the download package.
+3. On the Raspberry Pi create a directory to store the programs at /home/pi/code/sweep
+4. Place the input_monitor.py and record_scan.py files from the RPi files directory of this repository in the /home/pi/code/sweep directory on the Raspberry Pi. 
+5. Modify rc.local at /etc/rc.local by adding the following line to the end of the file (but before the exit 0 line). An example rc.local file is included, but it is suggested to just add this line to your Pi.
+su pi -c 'python3 /home/pi/code/sweep/input_monitor.py &'
+6. Restart the Pi. It will now trigger a scan every time it receives input on pin 4 of the GPIO. The scans are saved in /home/pi/lidarData
+
+### Description of the Raspberry Pi setup
+The Scanse Sweep library provides functions to easily interact with the Sweep once installed. Using SweepPy provides access for the python program, "record_scan.py." During boot, rc.local is executed which starts a simple python program, input_monitor.py, that sets up a trigger for record_scan.py when there is a transition to a high state on pin 4. It uses an excessively long 2 second debounce time to ensure the recording program is not called too often. The record_scan.py program opens the connection to the LIDAR. It starts scanning. When the fifth scan has been taken, it processes the scan data. It takes all the measurements in the fifth scan and converts them to "angle (in degrees), distance (in cm), x (in cm), y (in cm)" in a cvs format. Python resouce management takes care of closing the LIDAR connection when the Sweep block ends. Finally, the data file is closed.
+
+### Setting up the Arduino
+1. Send the ServoSigTiming.ino program in the Arduino directory of this repository to the Arduino Leonardo on the DFRobot DFR0327 using the IDE of your choice.
+
+### Description of the Arduino Program
+This simple program just monitors the pulse widths recieved on pin 7 (R/C servo signal input) and toggles pin 4 to a constant high or low state. The pulse threshold for switching from a high to low state has been set at 1515 ms. Although 1500 ms is technically the center point of the R/C servo signal, using 1515 ms provides an offset to avoid excess transitions when the signal happens to be sitting at neutral.
+
+### Constructing the mount
+The CAD files for printing a mount are in the LIDAR Mount directory of this repository. The mount can be attached to the standard camera support rails on the S1000. Modifications may need to be made for other UAS. Print the parts and assemble as shown in the CAD assembly file.Place the Raspberry Pi onto its provided space in the bracket. Secure the LiDAR to its place in the same bracket, with the machine screws. Attach the USB cable from the Raspberry Pi to the LiDAR. Connect the power cables to the drone's battery. Attach the power converter to the power cables. Bolt the mount onto the drone.
+
+### Miscellaneous electrical components and connections
+A converter is necessary to take the 22V power from the 6S LiPo battery to 5V necessary for the powering the Raspberry Pi and Arduino. The 5V power and grounds from the converter can be attached to any of the common 5V and GND pins on the Ardiuno Shield/HAT. A standard servo connection can be used to carry the R/C servo signal from the flight controller output pin (setup as necessary for your UAS) to pin 7 on the Arduino Shield/HAT. Although the standard servo connection has 3 pins, only the signal wire and ground are necessary. A jumper wire must be run from Arduino pin 4 to pin G4 for the Raspberry Pi on the Shield/HAT to carry the signal from the Arduino to the Raspberry Pi through the level shifters built into the Shield/HAT.  
 
 ## Drawings
 
 ![LiDAR mount drawing](https://github.com/emvanzant/PiDAR/blob/master/docs/mount%20drawing.jpg?raw=true)
 [Download LiDAR mount file (.pdf)](https://github.com/emvanzant/PiDAR/blob/master/docs/LiDAR_mount_sweepclamp_Rev.2.pdf?raw=true)     
 [Download LiDAR mount parts and drawings (.zip)](https://github.com/emvanzant/PiDAR/blob/master/docs/BAE305_Sweep%20LiDAR%20mount.zip?raw=true)
-
-
-## Code
-     
-### RUN FROM BOOT CODE
-
-     if (GPIO.input(buttonPin)):
-         # This is the script that will be called #
-         os.system("python /home/pi/code/sweep/pressscan.py")
-         
-### BUTTON CODE
-     
-     import RPi.GPIO as GPIO
-     import os
-     import time
-     
-     GPIO.setmode(GPIO.BCM)
-
-     GPIO.setup(18, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-
-     while True:
-    input_state = GPIO.input(18)
-    if input_state == False:
-        os.system("python /home/pi/code/sweep/scantest.py")
-        time.sleep(0.2)
-
-        
-### LIDAR CODE
-
-    from __future__ import division
-     import serial
-     import math
-     import os
-     import struct
-     import time
-
-     with serial.Serial("/dev/ttyUSB0",
-                    baudrate = 115200, 
-                    parity=serial.PARITY_NONE,  
-                    bytesize = serial.EIGHTBITS,
-                    stopbits = serial.STOPBITS_ONE,
-                    xonxoff = False,
-                    rtscts = False,
-                    dsrdtr = False) as sweep:
-
-    print "Scanse Sweep open"
-    sweep.write("ID\n")
-    print "Query device information"
-    resp = sweep.readline()
-    print "Response: " + resp
-
-    print "Starting scanning...",
-    sweep.write("DS\n")
-    resp = sweep.readline()
-    assert (len(resp) == 6), "Bad data"
-
-    status = resp[2:4]
-    if  status == "00":
-        print "OK"
-    else:
-        print "Failed %s" % status
-        os.exit()
-        
-    # Writes a new scan iteratively by adding an integer onto the name of a previous scan #    
-    while os.path.exists("sweep%s.csv" % i):
-        i += 1
-    log = open("sweep%s.csv" % i, "w")
-    log.write("angle, distance, x, y\n")
-
-    format = '=' + 'B' * 7
-
-    try:
-    # Collects rows of data points equal to the number in xrange plus one #
-        for d in xrange (99):
-            line = sweep.read(7)
-            assert (len(line) == 7), "Bad data read: %d" % len(line)
-            data = struct.unpack(format, line)
-            assert (len(data) == 7), "Bad data type conversion: %d" % len(data)
-
-            azimuth_lo = data[1]
-            azimuth_hi = data[2]
-            angle_int = (azimuth_hi << 8) + azimuth_lo
-            degrees = (angle_int >> 4) + (angle_int & 15) / 16
-
-            distance_lo = data[3]
-            distance_hi = data[4]
-            distance = ((distance_hi << 8) + distance_lo) / 100
-
-            x = distance * math.cos(degrees * math.pi / 180)
-            y = distance * math.sin(degrees * math.pi / 180)
-
-            log.write("%f, %f, %f, %f\n" % (degrees, distance, x, y))
-        else:
-            log.close()
-
-       # Catch Ctrl-C #
-        except KeyboardInterrupt as e:
-        pass        
-
-       # Catch incorrect assumption bugs #
-        except AssertionError as e:
-        print e
-
 
 ## Test Equipment
 - Complete assembly (componenets listed in the "Materials" secion)
@@ -156,8 +76,7 @@ Copy and dowload the provided code into the Micro SD card. Insert the SD card to
 - 22V battery
 
 ## Test Procedure
-Use the HDMI cable to connect the pi to the monitor. Connect the keyboard to the pi. and attach the power cables to the 22V battery. From the pi's home page, navigate to the sweep file, then run the pressscan.py function in the same folder. That call is path-dependent, and it's visible in the pressscan.py code. Press the button on the mount to initialize the program. When the button activates the pressscan.py code, the LiDAR begins collecting data, saving it in bundles of 100 rows as a .csv file. The program adds an integer onto the end of the name sweep.csv if it alreay exists. Press the button a second time to stop the program.
-
+Operate the UAS to send the necessary R/C signal out. After operation, the data can be downloaded by connectin a keyboard, mouse and monitor to the Raspberry Pi. Navigate to /home/pi/lidarData. The data files are sequentally number. Note, unless a battery has been installed in the Raspberry Pi for the RTC, the time stamps are likely incorrect unless an Internet connection was available while flying for the Raspberry Pi's time server to initialize to the correct time.
 
 ## Test Results
 Below is a sample of the data collected and stored on the SD card after a successful trial.
@@ -187,18 +106,12 @@ Below is a sample of the data collected and stored on the SD card after a succes
      351.937500, 0.190000, 0.188122, -0.026648
      ...
      
-## Discussion
-The program is able to operate normally and performs the intended task. A code (pressscan.py) starts upon booting (by editing /etc/rc.local) which, when the button on the mount is pressed, calls on another program (scantest.py) to run a scan with the LiDAR, which saves data iteratively as a .csv file. This file includes angle and distance, and can be exported.
-
 ### Design
 Design considerations for the physical, 3-D printed mount and assembly include:
 - Minimum mount thickness: 0.1 in.
 - Additional material added to base considering stress points
 - Depressions for hex nuts to maintain consistency with exisitng mount components
 - Neat and compact storage of components and wiring to prevent interference during flight
-
-### Testing
-The program is able to operate normally and performs the intended task. A code (pressscan.py) starts upon booting (by editing /etc/rc.local) which, when the button on the mount is pressed, calls on another program (scantest.py) to run a scan with the LiDAR, which saves data iteratively as a .csv file. This file includes angle and distance, and can be exported.
 
 ## LiDAR User Manual
 [Scanse Sweep v1.0 User Manual](https://github.com/emvanzant/PiDAR/blob/master/docs/Sweep_user_manual.pdf)
